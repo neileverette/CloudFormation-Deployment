@@ -109,7 +109,7 @@ Resources:
           </head>
           <body>
               <h1><?php echo date('F j, Y, g:i A'); ?></h1>
-              <h2>This worked</h2>
+              <h3>This actually worked</h3>
               <h3>Authored by Designer: Neil Everette</h3>
               <p>This is my new CloudFormation template</p>
           </body>
