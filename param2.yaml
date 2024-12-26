@@ -1,5 +1,0 @@
-template-file-path: template-advanced.yaml
-parameters:
-  KeyName: cloudformation-test
-  AMI: ami-01816d07b1128cd2d
-tags: {}

@@ -86,7 +86,7 @@ Resources:
   MyEC2Instance:
     Type: "AWS::EC2::Instance"
     Properties:
-      InstanceType: "t2.nano"
+      InstanceType: "t2.large"
       ImageId: !Ref AMI
       KeyName: !Ref KeyName
       SecurityGroupIds:
