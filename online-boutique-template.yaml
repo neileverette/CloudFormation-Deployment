@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to deploy an EC2 instance and run Online Boutique microservice.
+
+Parameters:
+  InstanceType:
+    Description: EC2 instance type for hosting the microservices.
+    Type: String
+    Default: t3.medium
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t3.micro
+      - t3.small
+      - t3.medium
+    ConstraintDescription: Must be a valid EC2 instance type.
+
+  VPCCIDR:
+    Description: CIDR block for the VPC.
+    Type: String
+    Default: 10.0.0.0/16
+
+  SubnetCIDR:
+    Description: CIDR block for the public subnet.
+    Type: String
+    Default: 10.0.1.0/24
+
+Resources:
+  # VPC
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: "Online-Boutique-VPC"
+
+  # Subnet
+  MyPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: !Ref SubnetCIDR
+      MapPublicIpOnLaunch: true
+
+  # Internet Gateway
+  MyInternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyInternetGateway
+
+  # Security Group
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP, HTTPS, and SSH access.
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  # EC2 Instance
+  OnlineBoutiqueInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: "cloudformation-test"
+      SecurityGroupIds:
+        - !Ref MySecurityGroup
+      SubnetId: !Ref MyPublicSubnet
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          # Update and install Docker
+          yum update -y
+          yum install -y docker git
+          service docker start
+          usermod -aG docker ec2-user
+          # Clone the Online Boutique repo
+          git clone https://github.com/GoogleCloudPlatform/microservices-demo.git
+          cd microservices-demo
+          # Run the containers
+          docker-compose up -d
+      Tags:
+        - Key: Name
+          Value: "Online-Boutique-Instance"
+
+Outputs:
+  InstancePublicIP:
+    Description: Public IP address of the EC2 instance.
+    Value: !GetAtt OnlineBoutiqueInstance.PublicIp
+    Export:
+      Name: OnlineBoutiqueInstanceIP
+
+  WebsiteURL:
+    Description: Application URL.
+    Value: !Sub "http://${OnlineBoutiqueInstance.PublicIp}"
