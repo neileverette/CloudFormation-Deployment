@@ -15,6 +15,17 @@ Parameters:
       - t3.medium
     ConstraintDescription: Must be a valid EC2 instance type.
 
+  AMI:
+    Description: Amazon Machine Image (AMI) ID for the EC2 instance.
+    Type: String
+    Default: "ami-01816d07b1128cd2d"
+    AllowedValues:
+      - ami-01816d07b1128cd2d
+      - ami-0ca9fb66e076a6e32
+      - ami-0e2c8caa4b6378d8c
+      - ami-0583d8c7a9c35822c
+    ConstraintDescription: Must be a valid AMI ID.
+
   VPCCIDR:
     Description: CIDR block for the VPC.
     Type: String
@@ -84,18 +95,18 @@ Resources:
       SecurityGroupIds:
         - !Ref MySecurityGroup
       SubnetId: !Ref MyPublicSubnet
+      ImageId: !Ref AMI
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
-          # Update and install Docker
+          set -e
           yum update -y
           yum install -y docker git
-          service docker start
+          systemctl start docker
+          systemctl enable docker
           usermod -aG docker ec2-user
-          # Clone the Online Boutique repo
-          git clone https://github.com/GoogleCloudPlatform/microservices-demo.git
-          cd microservices-demo
-          # Run the containers
+          git clone https://github.com/GoogleCloudPlatform/microservices-demo.git /home/ec2-user/microservices-demo
+          cd /home/ec2-user/microservices-demo
           docker-compose up -d
       Tags:
         - Key: Name
