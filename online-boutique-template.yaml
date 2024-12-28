@@ -130,9 +130,21 @@ Resources:
           systemctl start docker
           systemctl enable docker
           usermod -aG docker ec2-user
-          git clone https://github.com/GoogleCloudPlatform/microservices-demo.git /home/ec2-user/microservices-demo
-          cd /home/ec2-user/microservices-demo
+          
+          # Clone the repository
+          git clone https://github.com/YourUsername/YourRepository.git /home/ec2-user/project
+
+          # Fix ownership
+          chown -R ec2-user:ec2-user /home/ec2-user/project
+          
+          # Install Docker Compose
+          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+          
+          # Navigate to the project folder and bring up the services
+          cd /home/ec2-user/project
           docker-compose up -d
+
       Tags:
         - Key: Name
           Value: "Online-Boutique-Instance"

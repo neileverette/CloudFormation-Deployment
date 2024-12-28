@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  frontend:
+    image: gcr.io/google-samples/microservices-demo/frontend:v0.3.6
+    ports:
+      - "80:8080"
+    depends_on:
+      - productcatalogservice
+      - cartservice
+      - checkoutservice
+
+  productcatalogservice:
+    image: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.3.6
+
+  cartservice:
+    image: gcr.io/google-samples/microservices-demo/cartservice:v0.3.6
+
+  checkoutservice:
+    image: gcr.io/google-samples/microservices-demo/checkoutservice:v0.3.6
+    depends_on:
+      - emailservice
+
+  emailservice:
+    image: gcr.io/google-samples/microservices-demo/emailservice:v0.3.6
