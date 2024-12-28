@@ -55,6 +55,9 @@ Resources:
       VpcId: !Ref MyVPC
       CidrBlock: !Ref SubnetCIDR
       MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: "Public-Subnet"
 
   # Internet Gateway
   MyInternetGateway:
@@ -65,6 +68,28 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       InternetGatewayId: !Ref MyInternetGateway
+
+  # Route Table
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: "Public-RouteTable"
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyInternetGateway
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref MyPublicSubnet
+      RouteTableId: !Ref PublicRouteTable
 
   # Security Group
   MySecurityGroup:
@@ -91,7 +116,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref InstanceType
-      KeyName: "cloudformation-test"
+      KeyName: "cloudformation-test" # Replace with your key pair
       SecurityGroupIds:
         - !Ref MySecurityGroup
       SubnetId: !Ref MyPublicSubnet
