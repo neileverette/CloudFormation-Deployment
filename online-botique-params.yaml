@@ -1,0 +1,6 @@
+template-file-path: online-boutique-template.yaml
+parameters:
+  SubnetCIDR: 10.0.1.0/24
+  VPCCIDR: 10.0.0.0/16
+  AMI: ami-01816d07b1128cd2d
+tags: {}
