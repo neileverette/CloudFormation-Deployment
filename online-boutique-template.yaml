@@ -2,18 +2,18 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: CloudFormation template to deploy an EC2 instance and run Online Boutique microservice.
 
 Parameters:
-  InstanceType:
-    Description: EC2 instance type for hosting the microservices.
-    Type: String
-    Default: t3.medium
-    AllowedValues:
-      - t2.micro
-      - t2.small
-      - t2.medium
-      - t3.micro
-      - t3.small
-      - t3.medium
-    ConstraintDescription: Must be a valid EC2 instance type.
+#  InstanceType:
+#    Description: EC2 instance type for hosting the microservices.
+#    Type: String
+#    Default: t3.micro
+#    AllowedValues:
+#      - t2.micro
+#      - t2.small
+#      - t2.medium
+#      - t3.micro
+#      - t3.small
+#      - t3.medium
+#   ConstraintDescription: Must be a valid EC2 instance type.
 
   AMI:
     Description: Amazon Machine Image (AMI) ID for the EC2 instance.
@@ -115,7 +115,7 @@ Resources:
   OnlineBoutiqueInstance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: !Ref InstanceType
+      InstanceType: t2.micro
       KeyName: "cloudformation-test" # Replace with your key pair
       SecurityGroupIds:
         - !Ref MySecurityGroup
