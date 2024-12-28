@@ -115,7 +115,7 @@ Resources:
   OnlineBoutiqueInstance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t2.micro
+      InstanceType: t2.medium
       KeyName: "cloudformation-test" # Replace with your key pair
       SecurityGroupIds:
         - !Ref MySecurityGroup
