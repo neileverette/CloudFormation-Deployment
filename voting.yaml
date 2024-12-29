@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to deploy an EC2 instance and run Example Voting App.
+
+Parameters:
+  AMI:
+    Description: Amazon Machine Image (AMI) ID for the EC2 instance.
+    Type: String
+    Default: "ami-01816d07b1128cd2d"
+    AllowedValues:
+      - ami-01816d07b1128cd2d
+      - ami-0ca9fb66e076a6e32
+      - ami-0e2c8caa4b6378d8c
+      - ami-0583d8c7a9c35822c
+    ConstraintDescription: Must be a valid AMI ID.
+
+  VPCCIDR:
+    Description: CIDR block for the VPC.
+    Type: String
+    Default: 10.0.0.0/16
+
+  SubnetCIDR:
+    Description: CIDR block for the public subnet.
+    Type: String
+    Default: 10.0.1.0/24
+
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: "VotingApp-VPC"
+
+  MyPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: !Ref SubnetCIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: "Public-Subnet"
+
+  MyInternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyInternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: "Public-RouteTable"
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyInternetGateway
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref MyPublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP, HTTPS, and SSH access.
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  VotingAppInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.small
+      KeyName: "cloudformation-test" # Replace with your key pair
+      SecurityGroupIds:
+        - !Ref MySecurityGroup
+      SubnetId: !Ref MyPublicSubnet
+      ImageId: !Ref AMI
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          yum update -y
+          yum install -y docker git
+          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+          systemctl start docker
+          systemctl enable docker
+          usermod -aG docker ec2-user
+          git clone https://github.com/dockersamples/example-voting-app.git /home/ec2-user/voting-app
+          cd /home/ec2-user/voting-app
+          docker-compose up -d
+      Tags:
+        - Key: Name
+          Value: "VotingApp-Instance"
+
+Outputs:
+  InstancePublicIP:
+    Description: Public IP address of the EC2 instance.
+    Value: !GetAtt VotingAppInstance.PublicIp
+    Export:
+      Name: VotingAppInstanceIP
+
+  WebsiteURL:
+    Description: Voting App URL.
+    Value: !Sub "http://${VotingAppInstance.PublicIp}:80"
