@@ -5,7 +5,7 @@ Parameters:
 #  InstanceType:
 #    Description: EC2 instance type for hosting the microservices.
 #    Type: String
-#    Default: t3.micro
+#    Default: t3.small
 #    AllowedValues:
 #      - t2.nano
 #      - t2.micro
