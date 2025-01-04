@@ -85,15 +85,15 @@ Resources:
           ToPort: 22
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+          FromPort: 8080
+          ToPort: 8080
           CidrIp: 0.0.0.0/0
 
   VotingAppInstance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.small
-      KeyName: "cloudformation-test" # Replace with your key pair
+      KeyName: "cloudformation-test"
       SecurityGroupIds:
         - !Ref MySecurityGroup
       SubnetId: !Ref MyPublicSubnet
@@ -112,6 +112,7 @@ Resources:
           git clone https://github.com/dockersamples/example-voting-app.git /home/ec2-user/voting-app
           cd /home/ec2-user/voting-app
           docker-compose up -d
+          chown -R ec2-user:ec2-user /home/ec2-user/voting-app
       Tags:
         - Key: Name
           Value: "VotingApp-Instance"
@@ -125,4 +126,4 @@ Outputs:
 
   WebsiteURL:
     Description: Voting App URL.
-    Value: !Sub "http://${VotingAppInstance.PublicIp}:80"
+    Value: !Sub "http://${VotingAppInstance.PublicIp}:8080"
