@@ -117,3 +117,5 @@ Resources:
           EOL
           # Set correct permissions
           chown -R apache:apache /var/www/html
+          chmod 664 /var/www/html/index.php
+          usermod -a -G apache ec2-user
